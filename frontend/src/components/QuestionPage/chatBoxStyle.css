@@ -1,0 +1,63 @@
+.section {
+    margin: 0;
+    top: auto;
+    right: 20px;
+    bottom: 20px;
+    left: auto;
+    position: fixed;
+    text-align: right;
+}
+
+.chat-box {
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.chat-data {
+    max-height: 300px;
+    overflow: auto;
+    background-color: #f4f4f4
+}
+
+.user-input {
+    width: 250px;
+    border: none;
+}
+
+.remote-user-name {
+    font-size: 36px;
+    text-align: left;
+}
+
+.user-input:focus {
+    outline-width: 0;
+}
+
+.current-user-chat {
+    padding: 10px;
+    align-self: flex-end;
+    max-width: 200px;
+    text-align: end
+}
+
+.remote-user-chat {
+    padding: 10px;
+    align-self: flex-start;
+    max-width: 200px;
+    text-align: start
+}
+
+.chat-username {
+    text-decoration: underline;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.chat-text {
+    word-break: break-all;
+}
+
+.chat-time {
+    margin-top: 10px;
+    font-size: 10px
+}

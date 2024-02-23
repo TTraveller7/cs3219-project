@@ -1,0 +1,5 @@
+services:
+  reverse-proxy:
+    build: ./backend-reverse-proxy
+    ports:
+      - "8080:80"

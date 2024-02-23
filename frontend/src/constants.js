@@ -1,0 +1,7 @@
+export const STATUS_CODE_LOGIN = 200;
+export const STATUS_CODE_LOGOUT = 200;
+export const STATUS_CODE_MATCH_CONNECTED = 200;
+export const STATUS_CODE_CHANGE_PASSWORD = 200;
+export const STATUS_CODE_DELETE = 202;
+export const STATUS_CODE_CREATED = 202;
+export const STATUS_CODE_NOT_LOGGED_IN = 401;

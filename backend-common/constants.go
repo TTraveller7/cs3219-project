@@ -1,0 +1,32 @@
+package common
+
+const (
+	MATCH_ID_HEADER_KEY  = "X-MatchId"
+	MATCH_ID_CONTEXT_KEY = "matchId"
+	MATCH_ID_PARAM_KEY   = "matchId"
+
+	USERNAME_HEADER_KEY  = "X-Username"
+	USERNAME_CONTEXT_KEY = "username"
+
+	DIFFICULTY_EASY   = "easy"
+	DIFFICULTY_MEDIUM = "medium"
+	DIFFICULTY_HARD   = "hard"
+
+	USER_STATUS_IDLE           = "idle"
+	USER_STATUS_PENDING_EASY   = "pending_easy"
+	USER_STATUS_PENDING_MEDIUM = "pending_medium"
+	USER_STATUS_PENDING_HARD   = "pending_hard"
+	USER_STATUS_MATCHED        = "matched"
+	USER_STATUS_LEAVING        = "leaving"
+
+	QUESTION_ID_PARAM_KEY = "questionId"
+
+	HEALTHCHECK_URL = "/healthcheck"
+
+	ENV_POSTGRES_URL        = "POSTGRES_URL"
+	ENV_BLACKLIST_REDIS_URL = "BLACKLIST_REDIS_URL"
+	ENV_USER_REDIS_URL      = "USER_REDIS_URL"
+	ENV_MATCH_REDIS_URL     = "MATCH_REDIS_URL"
+	ENV_QUESTION_REDIS_URL  = "QUESTION_REDIS_URL"
+	ENV_KAFKA_URL           = "KAFKA_URL"
+)

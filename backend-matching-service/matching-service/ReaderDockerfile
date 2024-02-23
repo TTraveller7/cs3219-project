@@ -1,0 +1,27 @@
+FROM golang:1.19.0-alpine3.16 AS builder
+
+WORKDIR /app/reader-routine
+
+COPY backend-matching-service/matching-service/go.mod ./
+COPY backend-matching-service/matching-service/go.sum ./
+
+RUN mkdir /backend-common
+COPY backend-common /backend-common
+
+RUN mkdir {bin,match,reader}
+
+RUN go mod download
+
+COPY backend-matching-service/matching-service/reader ./reader
+COPY backend-matching-service/matching-service/match ./match
+
+RUN go build -o ./bin/reader-routine ./reader
+
+# Copy it the app to an alpine
+FROM alpine:3.11.3
+
+WORKDIR /app
+
+COPY --from=builder /app/reader-routine/bin/reader-routine ./
+
+CMD ["./reader-routine"]

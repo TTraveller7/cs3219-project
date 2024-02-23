@@ -1,0 +1,243 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+
+  # Persistence
+  postgres:
+    build: ./postgres
+    ports:
+      - "5525:5432"
+    restart: always
+    user: postgres
+    environment:
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_DB: "dev"
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready", "-d", "dev", "--username=postgres", "-p", "5432"]
+        interval: 30s
+        timeout: 5s
+        retries: 3
+        start_period: 10s
+  blacklist-cache:
+    image: "redis:7.0.4-alpine"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+  question-cache:
+    image: "redis:7.0.4-alpine"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s  
+  user-cache:
+    image: "redis:7.0.4-alpine"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s  
+  match-cache:
+    image: "redis:7.0.4-alpine"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+  document-cache:
+    image: "redislabs/redisearch:latest"
+    ports:
+      - "63791:6379"  
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  message-cache:
+    image: "redislabs/redisearch:latest"
+    ports:
+      - "63790:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  
+  # Rest Services
+  user-service:
+    build: 
+      context: ./
+      dockerfile: ./user-service/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_URL: "postgres://postgres:123@postgres:5432/dev"
+      BLACKLIST_REDIS_URL: "blacklist-cache:6379"
+    depends_on:
+      postgres: 
+        condition: service_healthy
+      blacklist-cache:
+        condition: service_healthy
+    restart: always
+
+  auth-service:
+    build:
+      context: ./
+      dockerfile: ./backend-auth-service/Dockerfile
+    ports:
+      - "13704:13704"
+    environment:
+      POSTGRES_URL: "postgres://postgres:123@postgres:5432/dev"
+      BLACKLIST_REDIS_URL: "blacklist-cache:6379"
+    depends_on:
+      postgres: 
+        condition: service_healthy
+      blacklist-cache:
+        condition: service_healthy
+
+  question-service:
+    build:
+      context: ./
+      dockerfile: ./backend-question-service/Dockerfile
+    ports:
+      - "17001:17001"
+    environment:
+      POSTGRES_URL: "postgres://postgres:123@postgres:5432/dev"
+      QUESTION_REDIS_URL: "question-cache:6379"
+      MATCH_REDIS_URL: "match-cache:6379"
+    depends_on:
+      postgres: 
+        condition: service_healthy
+      question-cache:
+        condition: service_healthy
+      match-cache:
+        condition: service_healthy
+        
+  matching-service:
+    build: 
+      dockerfile: ./backend-matching-service/matching-service/Dockerfile
+      context: ./
+    ports:
+      - "7001:7001"
+    environment:
+      - USER_REDIS_URL=user-cache:6379
+      - MATCH_REDIS_URL=match-cache:6379
+      - KAFKA_URL=kafka:29092
+      - POSTGRES_URL=postgres://postgres:123@postgres:5432/dev
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres: 
+        condition: service_healthy
+      match-cache:
+        condition: service_healthy
+      user-cache:
+        condition: service_healthy
+    restart: always
+
+  reader-routine:
+    build: 
+      dockerfile: ./backend-matching-service/matching-service/ReaderDockerfile
+      context: ./
+    environment:
+      - USER_REDIS_URL=user-cache:6379
+      - MATCH_REDIS_URL=match-cache:6379
+      - KAFKA_URL=kafka:29092
+      - POSTGRES_URL=postgres://postgres:123@postgres:5432/dev
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres: 
+        condition: service_healthy
+      match-cache:
+        condition: service_healthy
+      user-cache:
+        condition: service_healthy
+
+  # Kafka
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.8
+    ports:
+      - "2181:2181"
+    volumes:
+      - "zookeeper_data:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: docker.io/bitnami/kafka:3.2
+    ports:
+      - "9093:9093"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092, PLAINTEXT_HOST://kafka:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092, PLAINTEXT_HOST://kafka:29092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  
+  # Socket io
+  socketio-matching-service:
+    build: ./backend-socketio
+    ports:
+      - "5200:5200"
+    restart: always
+    environment:
+      - URI_MATCH_SVC=http://matching-service:7001
+  socketio-chat-service:
+    build: ./backend-chat-service
+    ports:
+      - "5300:5300"
+    depends_on:
+      message-cache:
+        condition: service_healthy
+    restart: always
+    environment:
+      - CHAT_REDIS_URL=redis://message-cache:6379
+  socketio-collab-service:
+    build: ./backend-collab-service
+    ports:
+      - "5400:5400"
+    depends_on:
+      document-cache:
+        condition: service_healthy
+    restart: always
+    environment:
+      - COLLAB_REDIS_URL=redis://document-cache:6379
+
+  # Reverse proxy
+  reverse-proxy:
+    build: ./backend-reverse-proxy
+    ports:
+      - "8080:80"
+    depends_on:
+      user-service:
+        condition: service_healthy
+      matching-service:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      question-service:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local

@@ -1,0 +1,18 @@
+services:
+  postgres:
+    build: .
+    ports:
+      - "5000:5432"
+    restart: always
+    user: postgres
+    environment:
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_DB: "dev"
+  redis:
+    image: "redis:7.0.4-alpine"
+    ports: 
+      - "6379:6379"
+  question-cache:
+    image: "redis:7.0.4-alpine"
+    ports: 
+      - "6382:6379"

@@ -1,0 +1,9 @@
+services:
+  user-cache:
+    image: "redis:7.0.4-alpine"
+    ports: 
+      - "6380:6379"
+  match-cache:
+    image: "redis:7.0.4-alpine"
+    ports: 
+      - "6381:6379"

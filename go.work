@@ -1,0 +1,9 @@
+go 1.19
+
+use (
+	./backend-auth-service
+	./backend-common
+	./backend-matching-service/matching-service
+	./backend-question-service
+	./user-service
+)

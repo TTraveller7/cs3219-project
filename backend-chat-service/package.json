@@ -1,0 +1,26 @@
+{
+  "name": "chat-service-socketio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/chat-service-service.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/chat-service-server.js",
+    "dev": "nodemon ./src/chat-service-server.js"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "moment": "^2.29.4",
+    "redis": "^4.0.4",
+    "redis-om": "^0.3.6",
+    "socket.io": "^4.5.2"
+  },
+  "author": "Kimowarui",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  }
+}
